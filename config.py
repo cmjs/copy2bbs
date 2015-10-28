@@ -1,8 +1,8 @@
 
 
 DOMAIN = r'http://bbs.uestc.edu.cn/'
-USERNAME=r'XXXXXX'
-PASSWORD=r'XXXXXX'
+USERNAME=r'xxxxx'
+PASSWORD=r'xxxxx'
 LOGINFIELD = r'username'
 
 HOMEURL = DOMAIN

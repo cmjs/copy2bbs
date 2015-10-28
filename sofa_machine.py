@@ -17,7 +17,7 @@ class Sofa_machine(object):
         self.my_account  = discuz.Discuz()
         self.aim_tid = 0
         self.last_succeed_tid = 0
-        self.life_time = Life_Time
+        #self.life_time = Life_Time
         if not self.my_account.login(config.USERNAME, config.PASSWORD):
             self.login_flag = False
             print 'login failed'
@@ -45,26 +45,30 @@ class Sofa_machine(object):
 
 if __name__ == '__main__':
     sofa_machine  = Sofa_machine()
-    sofa_machine.aim_tid = sofa_machine.fetch_latest_tid()
+    #sofa_machine.aim_tid = sofa_machine.fetch_latest_tid()
     while True:
-        if sofa_machine.my_account.reply(str(sofa_machine.aim_tid),content[random.randint(0,3)]):
-            print 'post %d reply succeed' % sofa_machine.aim_tid
-            sofa_machine.last_succeed_tid = sofa_machine.aim_tid
-            sofa_machine.aim_tid = sofa_machine.aim_tid + 1
-            sofa_machine.life_time = Life_Time
-        else:
-            print 'sleep'
+        sofa_machine.aim_tid = sofa_machine.fetch_latest_tid()
+        if sofa_machine.last_succeed_tid == sofa_machine.aim_tid:
             time.sleep(10)
-            if sofa_machine.life_time > 0:
-                sofa_machine.life_time = sofa_machine.life_time - 1
-            if sofa_machine.life_time == 0:
-                if sofa_machine.last_succeed_tid == sofa_machine.fetch_latest_tid():
-                    print 'no new tid'
-                    pass
-                else:
-                    print 'restart reply'
-                    sofa_machine.aim_tid = sofa_machine.fetch_latest_tid()
-                    sofa_machine.life_time = Life_Time
+            print 'sleep'
+        elif sofa_machine.my_account.reply(str(sofa_machine.aim_tid),content[random.randint(0,3)]):
+            print 'post %d reply succeed ' % sofa_machine.aim_tid
+            sofa_machine.last_succeed_tid = sofa_machine.aim_tid
+            #sofa_machine.aim_tid = sofa_machine.aim_tid + 1
+            #sofa_machine.life_time = Life_Time
+        else:
+            print 'reply failed :('
+           # time.sleep(10)
+           # if sofa_machine.life_time > 0:
+           #     sofa_machine.life_time = sofa_machine.life_time - 1
+           # if sofa_machine.life_time == 0:
+           #     if sofa_machine.last_succeed_tid == sofa_machine.fetch_latest_tid():
+           #         print 'no new tid'
+           #         pass
+           #     else:
+           #         print 'restart reply'
+           #         sofa_machine.aim_tid = sofa_machine.fetch_latest_tid()
+           #         sofa_machine.life_time = Life_Time
 
 
 
