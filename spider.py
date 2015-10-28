@@ -46,6 +46,6 @@ class Spider(object):
 
 
 if __name__ == '__main__':
-    spider  = Spider('http://iranshao.com/articles/2068-marathon_hundred')
+    spider  = Spider('you url')
     spider.spide()
 
