@@ -19,6 +19,8 @@ class Discuz(object):
         self.formhash_pattern = re.compile(r'<input type="hidden" name="formhash" value="([0-9a-zA-Z]+)" />')
 
         self.post_success_pattern = re.compile(r'<meta name="keywords" content="(?u)(.+)" />')  # 发帖成功时匹配
+        self.reply_success_pattern = re.compile(r'succeedhandle_fastpost')
+
         self.post_fail_pattern = re.compile(r'<div id="messagetext" class="alert_error">')  # 发贴失败时匹配
         self.post_error_pattern = re.compile(r'<p>(?u)(.+)</p>')  # 发贴失败的错误信息
 
@@ -78,6 +80,7 @@ class Discuz(object):
                     'message': message,
                     'typeid':1096,
                     'formhash': self.formhash,
+                    'usesig':0
         }
 
         base_url = config.POSTURL
@@ -97,13 +100,29 @@ class Discuz(object):
         url = base_url.replace('TID', tid)
         self.response_page = self._get_response(url, postdata)
 
-        prefix = '回复 "%s" ' % self._interception(message, 80)
-        return  self.__verify_post_status(prefix)
+        prefix = '回复 "%s" ' % message
+        return  self.__verify_reply_status(prefix)
 
     def __verify_post_status(self, prefix):
         page_content_utf8 = self.response_page.read().decode('utf-8')
 
         if self.post_success_pattern.search(page_content_utf8):
+            print "%s发布成功！" % prefix
+            return True
+        elif self.post_fail_pattern.search(page_content_utf8):
+            post_error_message = self.post_error_pattern.search(page_content_utf8)
+            try:
+                print "%s发布失败！原因是：%s。" % (prefix, post_error_message.group(1))
+            except:
+                print "%s发布失败！原因是：未知原因。" % prefix
+            return False
+        else:
+            print "无法确定%s发布状态" % prefix
+            return False
+    def __verify_reply_status(self, prefix):
+        page_content_utf8 = self.response_page.read().decode('utf-8')
+
+        if self.reply_success_pattern.search(page_content_utf8):
             print "%s发布成功！" % prefix
             return True
         elif self.post_fail_pattern.search(page_content_utf8):

@@ -11,7 +11,7 @@ if __name__ == '__main__':
         print 'login failed'
     else:
         print 'login succeed'
-        my_spider = spider.Spider('http://iranshao.com/articles/2085-liuxiang')
+        my_spider = spider.Spider('http://iranshao.com/articles/2087-marathon-awe')
         if my_spider.spide():
             print 'spide succeed'
             if my_account.post_new('312',my_spider.subject,my_spider.content):
