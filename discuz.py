@@ -96,8 +96,8 @@ class Discuz(object):
                     'formhash': self.formhash,
         }
 
-        base_url = config.REPLYURL
-        url = base_url.replace('TID', tid)
+        #base_url = config.REPLYURL
+        url = config.REPLYURL.replace('TID', tid)
         self.response_page = self._get_response(url, postdata)
 
         prefix = '回复 "%s" ' % message
