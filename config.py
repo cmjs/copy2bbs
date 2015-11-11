@@ -14,4 +14,5 @@ REPLYURL= DOMAIN + r'forum.php?mod=post&action=reply&fid=25&tid=TID&extra=&reply
 
 
 WATERURL  = DOMAIN + r'forum.php?mod=viewthread&tid=1559009'
+WWURL     = DOMAIN + r'forum.php?mod=viewthread&tid=1570810'
 #LASTPAGEURL_BASE = DOMAIN + r'forum.php?mod=viewthread&tid=1559009&extra=&page='
