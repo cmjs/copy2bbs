@@ -7,6 +7,9 @@ import re
 
 import config
 
+user_agent = 'Mozilla/5.0 (Linux; Android 4.4.2; Nexus 4 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36'
+mobile_headers = { 'User-Agent' : user_agent }
+
 class Discuz(object):
     def __init__(self):
         self.response_page = ''  # response的对象（不含read）
@@ -24,7 +27,7 @@ class Discuz(object):
         self.post_fail_pattern = re.compile(r'<div id="messagetext" class="alert_error">')  # 发贴失败时匹配
         self.post_error_pattern = re.compile(r'<p>(?u)(.+)</p>')  # 发贴失败的错误信息
 
-    def login(self, username, password, questionid = 0, answer = ''):
+    def login(self, username, password, mobile = False,questionid = 0, answer = ''):
         postdata = {
                          'loginfield': config.LOGINFIELD,
                          'username': username,
@@ -32,37 +35,67 @@ class Discuz(object):
                          'questionid': questionid,
                          'answer': answer,
         }
+        if not mobile:
+            login_success_pattern = re.compile(ur"\('succeedlocation'\).innerHTML = '(?u)(.+)，现在将转入登录前页面';")
+            login_fail_pattern = re.compile(r"{errorhandle_\('(?u)(.+)',")
 
-        login_success_pattern = re.compile(ur"\('succeedlocation'\).innerHTML = '(?u)(.+)，现在将转入登录前页面';")
-        login_fail_pattern = re.compile(r"{errorhandle_\('(?u)(.+)',")
+            # 取得登录成功/失败的提示信息
+            self.response_page = self._get_response(config.LOGINURL, postdata)
+            login_tip_page = self.response_page.read().decode('utf-8')
+            #print '======================='
+            #print login_tip_page
+            #print '======================='
+            login_success_info = login_success_pattern.search(login_tip_page)
+            login_fail_info = login_fail_pattern.search(login_tip_page)
 
-        # 取得登录成功/失败的提示信息
-        self.response_page = self._get_response(config.LOGINURL, postdata)
-        login_tip_page = self.response_page.read().decode('utf-8')
-        #print '======================='
-        #print login_tip_page
-        #print '======================='
-        login_success_info = login_success_pattern.search(login_tip_page)
-        login_fail_info = login_fail_pattern.search(login_tip_page)
+            # 显示登录成功/失败信息
+            if login_success_info:
+                print login_success_info.group(1)
+            #    print '------------------------'
+            #    print self._get_response(config.HOMEURL).read()
+            #    print '------------------------'
+                self.formhash = self._get_formhash(self._get_response(config.HOMEURL).read())
+                return True
+            elif login_fail_info:
+                print login_fail_info.group(1)
+            else:
+                print '无法获取登录状态'
 
-        # 显示登录成功/失败信息
-        if login_success_info:
-            print login_success_info.group(1)
-        #    print '------------------------'
-        #    print self._get_response(config.HOMEURL).read()
-        #    print '------------------------'
-            self.formhash = self._get_formhash(self._get_response(config.HOMEURL).read())
-            return True
-        elif login_fail_info:
-            print login_fail_info.group(1)
+            return False
         else:
-            print '无法获取登录状态'
 
-        return False
 
-    def _get_response(self, url, data = None):
+            login_success_pattern = re.compile(ur"提示信息 -  清水河畔－电子科技大学官方论坛 -  手机版")
+            self.response_page = self._get_response('http://bbs.uestc.edu.cn/member.php?mod=logging&action=login&loginsubmit=yes&loginhash=LhGMg&mobile=yes', postdata)
+            login_tip_page = self.response_page.read().decode('utf-8')
+            #print '======================='
+            print login_tip_page
+            #print '======================='
+            login_success_info = login_success_pattern.search(login_tip_page)
+            #login_fail_info = login_fail_pattern.search(login_tip_page)
+
+            # 显示登录成功/失败信息
+            if login_success_info:
+            #    print login_success_info.group(1)
+            #    print '------------------------'
+            #    print self._get_response(config.HOMEURL).read()
+            #    print '------------------------'
+                self.formhash = self._get_formhash(self._get_response(config.HOMEURL).read())
+                print self.formhash
+                return True
+            #elif login_fail_info:
+            #    print login_fail_info.group(1)
+            else:
+                print '无法获取登录状态'
+
+            return False
+
+    def _get_response(self, url, data = None,mobile=False):
         if data is not None:
-            req = urllib2.Request(url, urllib.urlencode(data))
+            if not mobile:
+                req = urllib2.Request(url, urllib.urlencode(data))
+            else:
+                req = urllib2.Request(url, urllib.urlencode(data),mobile_headers)
         else:
             req = urllib2.Request(url)
 
@@ -100,6 +133,15 @@ class Discuz(object):
         url = config.REPLYURL.replace('TID', tid)
         self.response_page = self._get_response(url, postdata)
 
+        prefix = '回复 "%s" ' % message
+        return  self.__verify_reply_status(prefix)
+
+    def reply_ql(self, url,message):
+        postdata = {
+                    'message': message,
+                    'formhash': self.formhash,
+        }
+        self.response_page = self._get_response(url, postdata)
         prefix = '回复 "%s" ' % message
         return  self.__verify_reply_status(prefix)
 
